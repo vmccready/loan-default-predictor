@@ -26,7 +26,7 @@ def get_all_data(in_path):
     for i in range(1, len(dfs)):
         data = data.append(dfs[i][cols])
     
-    data.reset_index()
+    data.reset_index(drop=True)
 
     return data
 
@@ -42,6 +42,7 @@ def clean_data(data):
 
     # Remove columns that contain too much missing data
     data = drop_columns_with_missing(data, 0.2)
+    data = data.dropna()
     return data
 
 def get_columns(in_all=True):
@@ -77,7 +78,7 @@ def create_Xy(data, X_columns):
     # For now, drop all rows with missing data
     X = X.dropna()
 
-    y = useable_data['loan_status'][X.index]
+    y = data['loan_status']
     y = y.apply(lambda x: 1 if x=='Charged Off' else 0)
     return X, y
 
