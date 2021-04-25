@@ -82,7 +82,10 @@ def drop_columns_with_missing(data, threshold=0.2):
             to_drop.append(c)
     return data.drop(to_drop, axis=1)
 
-
+def create_dummies(data):
+    categorical = ['home_ownership','sub_grade', 'purpose', 'verification_status']
+    data = pd.get_dummies(data, columns=categorical, drop_first=True) 
+    return data
 
 def create_X(data, drop):
     X = data.drop(drop, axis=1)
@@ -90,9 +93,9 @@ def create_X(data, drop):
     # Fill missing values with 0
     X.fillna(value=0.0, inplace=True)
 
-    # Create Categorical dummy columns
-    categorical = ['home_ownership','sub_grade', 'purpose', 'verification_status']
-    X = pd.get_dummies(X, columns=categorical, drop_first=True)  
+    # # Create Categorical dummy columns
+    # categorical = ['home_ownership','sub_grade', 'purpose', 'verification_status']
+    # X = pd.get_dummies(X, columns=categorical, drop_first=True)  
 
     return X
 
