@@ -26,24 +26,49 @@ def get_all_data(in_path):
     for i in range(1, len(dfs)):
         data = data.append(dfs[i][cols])
     
-    data.reset_index(drop=True)
+    data = data.reset_index(drop=True)
 
+    #Create year columns
+    data['year'] = data['issue_d'].apply(get_year)
+
+    return data
+
+def filter_data(data):
+    # Filter to data we want to use
+    # data = data[data['loan_status'].str.lower().isin(['fully paid', 'charged off'])]
+    data = data[data['application_type'].str.lower()=='individual']
+    return data
+
+def completed_filter(data):
+    data = data[data['loan_status'].str.lower().isin(['fully paid', 'charged off'])]
     return data
 
 def clean_data(data):
     # Cleaning
+
+    # Changel percent columns to floats
     percent = ['revol_util', 'int_rate']
     for p in percent:
         data[p] = data[p].apply(convert_pct)
+    
+    # Change terms column to int
+    terms = {' 60 months': 60, ' 36 months': 36}
+    data['term'] = data['term'].apply(lambda x: terms[x])
 
-    # Filter to data we want to use
-    data = data[data['loan_status'].apply(lambda x: x in ['Fully Paid', 'Charged Off'])]
-    data = data[data['application_type'].apply(lambda x: x.lower()=='individual')]
-
-    # Remove columns that contain too much missing data
-    data = drop_columns_with_missing(data, 0.2)
-    data = data.dropna()
     return data
+
+def get_year(s):
+    m = re.search('\d+', s)
+    return int(m[0])
+
+def convert_pct(x):
+    """
+    Converts string with % to a float, handles 'None's.
+    """
+    if x is None or pd.isnull(x):
+        return None
+    return float(re.sub('%', '', x))
+
 
 def get_columns(in_all=True):
     with open('data/columns_in_all.pickle', 'rb') as handle:
@@ -57,33 +82,22 @@ def drop_columns_with_missing(data, threshold=0.2):
             to_drop.append(c)
     return data.drop(to_drop, axis=1)
 
-def convert_pct(x):
-    """
-    Converts string with % to a float, handles 'None's.
-    """
-    if x is None or pd.isnull(x):
-        return None
-    return float(re.sub('%', '', x))
 
-def create_Xy(data, X_columns):
-    # useable_data = data[data['loan_status'].apply(lambda x: x in ['Fully Paid', 'Charged Off'])]
-    # X = useable_data[X_columns][useable_data['application_type']=='INDIVIDUAL']
-    # X = drop_columns_with_missing(X, 0.2)
-    X = data[X_columns].copy()
-    # Create dummy columns for categorical data
-    categorical = ['home_ownership','sub_grade', 'term', 'purpose']
+
+def create_X(data, drop):
+    X = data.drop(drop, axis=1)
+
+    # Fill missing values with 0
+    X.fillna(value=0.0, inplace=True)
+
+    # Create Categorical dummy columns
+    categorical = ['home_ownership','sub_grade', 'purpose', 'verification_status']
     X = pd.get_dummies(X, columns=categorical, drop_first=True)  
-    # X = X.drop(['term' ], axis=1)
 
-    # For now, drop all rows with missing data
-    X = X.dropna()
+    return X
 
+def create_y(data):
     y = data['loan_status']
-    y = y.apply(lambda x: 1 if x=='Charged Off' else 0)
-    return X, y
-
-def create_y(data, X_index):
-    y = data['loan_status'].iloc[X_index].copy()
     y = y.apply(lambda x: 1 if x=='Charged Off' else 0)
     return y
 

@@ -12,9 +12,10 @@ def create_model(model, X, y):
     X_train, X_test, y_train, y_test = train_test_split(X,y)
 
     model.fit(X_train, y_train)
-    accuracy = model.score(X_test, y_test)
+    return model
+
+def get_scores(model, X_test, y_test):
     recall = recall_score(y_test, model.predict(X_test))
     precision = precision_score(y_test, model.predict(X_test))
 
-    return model, accuracy, recall, precision
-
+    return recall, precision
