@@ -104,5 +104,10 @@ def create_y(data):
     y = y.apply(lambda x: 1 if x=='Charged Off' else 0)
     return y
 
-
+def print_missing(data):
+    for column in data.columns:
+        if data[column].isna().sum() != 0:
+            missing = data[column].isna().sum()
+            portion = (missing / data.shape[0]) * 100
+            print(f"'{column}': number of missing values '{missing}' ==> '{portion:.3f}%'")
 
