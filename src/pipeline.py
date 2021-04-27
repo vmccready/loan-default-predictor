@@ -1,6 +1,7 @@
 import numpy as np 
 import pandas as pd 
 import pickle
+import datetime
 import re
 from glob import iglob
 
@@ -28,12 +29,13 @@ def get_all_data(in_path):
     
     data = data.reset_index(drop=True)
 
-    #Create year columns
+    #Create year and date columns
     data['year'] = data['issue_d'].apply(get_year)
+    data['date'] = data['issue_d'].apply(get_date)
 
     return data
 
-def filter_data(data):
+def individual_data(data):
     # Filter to data we want to use
     # data = data[data['loan_status'].str.lower().isin(['fully paid', 'charged off'])]
     data = data[data['application_type'].str.lower()=='individual']
@@ -42,6 +44,14 @@ def filter_data(data):
 def completed_filter(data):
     data = data[data['loan_status'].str.lower().isin(['fully paid', 'charged off'])]
     return data
+
+def date_filter(start, stop, data):
+    return data[
+        (data['date'] >= start) &
+        (data['date'] <  stop)]
+
+def term_filter(term, data):
+    return data[data['term']==term]
 
 def clean_data(data):
     # Cleaning
@@ -57,6 +67,14 @@ def clean_data(data):
 
     return data
 
+month_dict = {'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6, 
+              'Jul':7, 'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12}
+def get_date(date_str):
+    y = int(re.search('\d+', date_str)[0])
+    m = re.search('[a-zA-Z]+', date_str)[0]
+    m = month_dict[m]
+    return datetime.date(y,m,1)
+
 def get_year(s):
     m = re.search('\d+', s)
     return int(m[0])
@@ -71,7 +89,7 @@ def convert_pct(x):
 
 
 def get_columns(in_all=True):
-    with open('data/columns_in_all.pickle', 'rb') as handle:
+    with open('data/X_drop.pickle', 'rb') as handle:
         cols = pickle.load(handle)
     return cols
 
