@@ -32,6 +32,8 @@ def get_all_data(in_path):
     #Create year and date columns
     data['year'] = data['issue_d'].apply(get_year)
     data['date'] = data['issue_d'].apply(get_date)
+    data['earliest_cr_line'] = data['earlist_cr_line'].apply(get_date)
+    data['days_earlist_cr'] = (data['date']-data['earliest_cr_line']).apply(lambda x: x.days)
 
     return data
 
@@ -73,6 +75,10 @@ def get_date(date_str):
     y = int(re.search('\d+', date_str)[0])
     m = re.search('[a-zA-Z]+', date_str)[0]
     m = month_dict[m]
+    if y < 22:
+        y += 2000
+    else:
+        y += 1900
     return datetime.date(y,m,1)
 
 def get_year(s):
@@ -110,10 +116,6 @@ def create_X(data, drop):
 
     # Fill missing values with 0
     X.fillna(value=0.0, inplace=True)
-
-    # # Create Categorical dummy columns
-    # categorical = ['home_ownership','sub_grade', 'purpose', 'verification_status']
-    # X = pd.get_dummies(X, columns=categorical, drop_first=True)  
 
     return X
 
