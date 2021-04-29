@@ -32,7 +32,7 @@ def get_all_data(in_path):
     #Create year and date columns
     data['year'] = data['issue_d'].apply(get_year)
     data['date'] = data['issue_d'].apply(get_date)
-    data['earliest_cr_line'] = data['earlist_cr_line'].apply(get_date)
+    data['earliest_cr_line'] = data['earliest_cr_line'].apply(get_date)
     data['days_earlist_cr'] = (data['date']-data['earliest_cr_line']).apply(lambda x: x.days)
 
     return data
